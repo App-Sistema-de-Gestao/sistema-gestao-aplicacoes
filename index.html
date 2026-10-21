@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestão de Projetos e Aplicações</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full text-slate-100 antialiased flex flex-col md:flex-row bg-slate-950 overflow-x-hidden">
+
+  <!-- SIDEBAR (DESKTOP) -->
+  <aside class="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen p-4 border-r border-slate-800 shadow-xl shrink-0">
+    <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
+      <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/30">
+        <i class="fa-solid fa-cubes text-xl"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm tracking-wide leading-tight">GESTÃO DE APPS</h1>
+        <p class="text-xs text-slate-400">Painel de Projetos</p>
+      </div>
+    </div>
+
+    <nav class="space-y-1 flex-1">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white shadow-md">
+        <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+      </button>
+      <button onclick="switchTab('projects')" id="nav-projects" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="fa-solid fa-diagram-project w-5"></i> Meus Projetos
+      </button>
+      <button onclick="switchTab('data')" id="nav-data" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="fa-solid fa-database w-5"></i> Backup & Dados
+      </button>
+    </nav>
+
+    <div class="pt-4 border-t border-slate-800 space-y-2">
+      <button onclick="openModal('modal-pwa')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-slate-400 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-mobile-screen"></i> Instalar como PWA
+      </button>
+      <button onclick="openModal('modal-project')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition">
+        <i class="fa-solid fa-plus"></i> Novo Projeto
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 flex flex-col min-w-0 mb-16 md:mb-0 bg-slate-950">
+    
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm text-white">
+      <div class="flex items-center gap-3">
+        <div class="md:hidden bg-blue-600 text-white p-2 rounded-lg">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+        <h2 id="page-title" class="text-base md:text-lg font-bold truncate">Dashboard Geral</h2>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openModal('modal-project')" class="md:hidden bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow">
+          <i class="fa-solid fa-plus"></i> Criar
+        </button>
+        <button onclick="restoreInitialData()" title="Restaurar dados iniciais" class="text-xs text-slate-300 hover:text-white bg-slate-800 p-2 rounded-lg transition border border-slate-700">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT BODY CONTAINER -->
+    <div class="p-4 md:p-6 max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- VIEW: DASHBOARD -->
+      <section id="view-dashboard" class="space-y-6">
+        
+        <!-- METRICS GRID -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-slate-400 uppercase">Total</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-total" class="text-2xl font-extrabold text-white">0</span>
+              <i class="fa-solid fa-folder text-slate-500"></i>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-blue-400 uppercase">Em Andamento</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-progress" class="text-2xl font-extrabold text-blue-400">0</span>
+              <i class="fa-solid fa-spinner text-blue-300"></i>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-emerald-400 uppercase">Concluídos</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-completed" class="text-2xl font-extrabold text-emerald-400">0</span>
+              <i class="fa-solid fa-circle-check text-emerald-300"></i>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-slate-400 uppercase">Não Iniciados</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-notstarted" class="text-2xl font-extrabold text-slate-300">0</span>
+              <i class="fa-solid fa-hourglass-start text-slate-500"></i>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-amber-400 uppercase">Aguardando/Pausa</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-paused" class="text-2xl font-extrabold text-amber-400">0</span>
+              <i class="fa-solid fa-circle-pause text-amber-300"></i>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-between hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition">
+            <span class="text-xs font-semibold text-rose-400 uppercase">Tarefas Pendentes</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span id="metric-tasks" class="text-2xl font-extrabold text-rose-400">0</span>
+              <i class="fa-solid fa-list-check text-rose-300"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT PROJECTS & SUMMARY -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-white text-sm md:text-base flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Atualizados Recentemente
+              </h3>
+              <button onclick="switchTab('projects')" class="text-xs font-semibold text-blue-400 hover:underline">Ver todos</button>
+            </div>
+            <div id="recent-projects-list" class="space-y-3"></div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-white text-sm md:text-base mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-rocket text-amber-400"></i> Próximos Passos
+              </h3>
+              <div id="dashboard-tasks-preview" class="space-y-2 text-xs text-slate-300"></div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-800">
+              <button onclick="openModal('modal-project')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-xs font-semibold transition border border-slate-700">
+                <i class="fa-solid fa-plus"></i> Adicionar Novo Projeto
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: PROJECTS LIST/KANBAN -->
+      <section id="view-projects" class="hidden space-y-4">
+        
+        <!-- CONTROLS & FILTERS -->
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-sm space-y-3">
+          <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+            
+            <!-- SEARCH -->
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="filter-search" oninput="renderProjects()" placeholder="Buscar projeto por nome ou descrição..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400">
+            </div>
+
+            <!-- VIEW TOGGLES & ACTIONS -->
+            <div class="flex items-center gap-2 self-end md:self-auto">
+              <div class="bg-slate-950 p-1 rounded-lg flex gap-1 border border-slate-800">
+                <button onclick="setProjectView('grid')" id="view-btn-grid" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-800 shadow text-white"><i class="fa-solid fa-grip"></i></button>
+                <button onclick="setProjectView('table')" id="view-btn-table" class="px-2.5 py-1 text-xs font-medium rounded-md text-slate-400"><i class="fa-solid fa-list"></i></button>
+                <button onclick="setProjectView('kanban')" id="view-btn-kanban" class="px-2.5 py-1 text-xs font-medium rounded-md text-slate-400"><i class="fa-solid fa-columns"></i></button>
+              </div>
+
+              <button onclick="openModal('modal-project')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-plus"></i> Novo
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTERS SELECT -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <select id="filter-status" onchange="renderProjects()" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400">
+              <option value="">Todos os Status</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Não iniciado">Não iniciado</option>
+              <option value="Pausado">Pausado</option>
+              <option value="Aguardando informação">Aguardando informação</option>
+            </select>
+
+            <select id="filter-priority" onchange="renderProjects()" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400">
+              <option value="">Todas as Prioridades</option>
+              <option value="Urgente">Urgente</option>
+              <option value="Alta">Alta</option>
+              <option value="Média">Média</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+
+            <select id="filter-tool" onchange="renderProjects()" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400">
+              <option value="">Todas as Ferramentas</option>
+              <option value="ChatGPT">ChatGPT</option>
+              <option value="Lovable">Lovable</option>
+            </select>
+
+            <select id="filter-sort" onchange="renderProjects()" class="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-emerald-400">
+              <option value="updated">Ord: Recém Atualizado</option>
+              <option value="name">Ord: Nome</option>
+              <option value="priority">Ord: Prioridade</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CONTAINER FOR GRID / TABLE / KANBAN -->
+        <div id="projects-container"></div>
+      </section>
+
+      <!-- VIEW: DATA / BACKUP -->
+      <section id="view-data" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-6 max-w-3xl mx-auto">
+          <div>
+            <h3 class="font-bold text-white text-base mb-1">Gerenciamento de Dados & Backup</h3>
+            <p class="text-xs text-slate-400">Os dados do sistema estão armazenados no navegador deste dispositivo.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 border border-slate-800 rounded-xl space-y-3 bg-slate-950">
+              <div class="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                <i class="fa-solid fa-download"></i> Exportar Dados
+              </div>
+              <p class="text-xs text-slate-400">Baixe um arquivo JSON com o backup completo de todos os seus projetos e tarefas.</p>
+              <button onclick="exportJSON()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg font-semibold shadow">
+                Exportar Backup (JSON)
+              </button>
+            </div>
+
+            <div class="p-4 border border-slate-800 rounded-xl space-y-3 bg-slate-950">
+              <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                <i class="fa-solid fa-upload"></i> Importar Dados
+              </div>
+              <p class="text-xs text-slate-400">Restaure um backup anteriormente exportado para carregar seus projetos neste dispositivo.</p>
+              <input type="file" id="import-file" accept=".json" class="hidden" onchange="importJSON(event)">
+              <button onclick="document.getElementById('import-file').click()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-2 rounded-lg font-semibold shadow">
+                Selecionar Arquivo JSON
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-bold text-slate-200">Restaurar Projetos Iniciais</span>
+              <p class="text-xs text-slate-400">Voltar para a lista padrão com os 5 projetos fornecidos.</p>
+            </div>
+            <button onclick="restoreInitialData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-4 py-2 rounded-lg font-semibold transition border border-slate-700">
+              Restaurar Padrão
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 text-slate-400 border-t border-slate-800 flex justify-around py-2 z-20">
+    <button onclick="switchTab('dashboard')" id="mob-dashboard" class="flex flex-col items-center gap-1 text-blue-400">
+      <i class="fa-solid fa-chart-pie text-base"></i>
+      <span class="text-[10px] font-medium">Dashboard</span>
+    </button>
+    <button onclick="switchTab('projects')" id="mob-projects" class="flex flex-col items-center gap-1">
+      <i class="fa-solid fa-diagram-project text-base"></i>
+      <span class="text-[10px] font-medium">Projetos</span>
+    </button>
+    <button onclick="openModal('modal-project')" class="flex flex-col items-center gap-1 text-blue-400">
+      <i class="fa-solid fa-circle-plus text-lg"></i>
+      <span class="text-[10px] font-medium">Novo</span>
+    </button>
+    <button onclick="switchTab('data')" id="mob-data" class="flex flex-col items-center gap-1">
+      <i class="fa-solid fa-database text-base"></i>
+      <span class="text-[10px] font-medium">Dados</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: PROJECT EDIT/CREATE -->
+  <div id="modal-project" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden text-slate-100">
+      
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-800">
+        <h3 id="modal-project-title" class="font-bold text-white text-sm md:text-base">Novo Projeto</h3>
+        <button onclick="closeModal('modal-project')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-project" onsubmit="saveProject(event)" class="p-4 md:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <input type="hidden" id="project-id">
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Nome do Projeto *</label>
+          <input type="text" id="project-name" required placeholder="Ex: APP SISTEMA DE GESTÃO..." class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-400 uppercase font-semibold text-white">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tipo</label>
+            <select id="project-type" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white">
+              <option value="Aplicativo">Aplicativo</option>
+              <option value="Site">Site</option>
+              <option value="Sistema Web">Sistema Web</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Status</label>
+            <select id="project-status" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white">
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Não iniciado">Não iniciado</option>
+              <option value="Pausado">Pausado</option>
+              <option value="Aguardando informação">Aguardando informação</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Prioridade</label>
+            <select id="project-priority" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white">
+              <option value="Média">Média</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Local / Ferramenta de Construção</label>
+          <input type="text" id="project-tool" placeholder="Ex: Lovable via conexão com ChatGPT" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Descrição e Objetivo</label>
+          <textarea id="project-description" rows="2" placeholder="Descreva os objetivos do projeto..." class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white"></textarea>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-project')" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 font-semibold border border-slate-700">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow">Salvar Projeto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DETAILS & TASKS -->
+  <div id="modal-details" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden text-slate-100">
+      
+      <!-- HEADER -->
+      <div class="p-4 border-b border-slate-800 bg-slate-800 flex items-center justify-between">
+        <div class="min-w-0 flex-1 pr-4">
+          <span id="detail-badge-status" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-900 text-blue-200">STATUS</span>
+          <h2 id="detail-name" class="font-extrabold text-white text-sm md:text-base mt-1 truncate">NOME DO PROJETO</h2>
+        </div>
+        <button onclick="closeModal('modal-details')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="p-4 md:p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+        
+        <!-- PROGRESS & METADATA -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200">Progresso Geral</span>
+            <span id="detail-progress-val" class="font-extrabold text-blue-400 text-sm">0%</span>
+          </div>
+          <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+            <div id="detail-progress-bar" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 text-[11px] text-slate-300">
+            <div><strong class="text-white">Tipo:</strong> <span id="detail-type">-</span></div>
+            <div><strong class="text-white">Prioridade:</strong> <span id="detail-priority">-</span></div>
+            <div><strong class="text-white">Ferramenta:</strong> <span id="detail-tool">-</span></div>
+          </div>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div>
+          <h4 class="font-bold text-white mb-1">Descrição e Objetivos</h4>
+          <p id="detail-description" class="text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed">-</p>
+        </div>
+
+        <!-- TASKS / IMPLEMENTATIONS -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-blue-400"></i> Próximas Implementações & Tarefas
+            </h4>
+            <span id="detail-tasks-count" class="text-[11px] text-slate-400 font-medium">0 tarefas</span>
+          </div>
+
+          <!-- ADD TASK FORM -->
+          <div class="flex gap-2 mb-3">
+            <input type="text" id="new-task-title" placeholder="Nova implementação ou pendência..." class="flex-1 p-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:ring-2 focus:ring-emerald-400">
+            <button onclick="addTaskFromDetail()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-semibold text-xs shadow shrink-0">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+
+          <!-- TASK LIST -->
+          <div id="detail-tasks-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- COMMENTS -->
+        <div>
+          <h4 class="font-bold text-white mb-2">Anotações & Decisões</h4>
+          <div id="detail-comments-list" class="space-y-2 mb-2 max-h-32 overflow-y-auto"></div>
+          <div class="flex gap-2">
+            <input type="text" id="new-comment-input" placeholder="Registrar uma observação..." class="flex-1 p-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white">
+            <button onclick="addCommentFromDetail()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg font-semibold text-xs shrink-0 border border-slate-700">
+              Anotar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="p-3 bg-slate-800 border-t border-slate-700 flex items-center justify-between">
+        <button onclick="deleteCurrentProject()" class="text-rose-400 hover:bg-rose-950/40 px-3 py-1.5 rounded-lg text-xs font-semibold">
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+        <div class="flex gap-2">
+          <button onclick="editCurrentProject()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-600">
+            <i class="fa-solid fa-pen"></i> Editar
+          </button>
+          <button onclick="closeModal('modal-details')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">
+            Fechar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: PWA INSTRUCTIONS -->
+  <div id="modal-pwa" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-xs text-slate-200">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm">Instalar na Tela Inicial</h3>
+        <button onclick="closeModal('modal-pwa')" class="text-slate-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="space-y-3 text-slate-300">
+        <p class="font-semibold text-white">No Android (Chrome):</p>
+        <ol class="list-decimal pl-4 space-y-1">
+          <li>Toque no menu de três pontos no canto superior direito.</li>
+          <li>Selecione <strong>"Adicionar à tela inicial"</strong> ou "Instalar aplicativo".</li>
+        </ol>
+
+        <p class="font-semibold text-white pt-2">No iPhone / iPad (Safari):</p>
+        <ol class="list-decimal pl-4 space-y-1">
+          <li>Toque no botão de <strong>Compartilhar</strong> (ícone de quadrado com seta para cima).</li>
+          <li>Role as opções e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+        </ol>
+      </div>
+
+      <button onclick="closeModal('modal-pwa')" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mt-4">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    const DEFAULT_PROJECTS = [
+      {
+        id: "p1",
+        name: "APP SISTEMA DE GESTÃO DE ESCALA DE SERVIÇO FISCAL DE COZINHA",
+        type: "Aplicativo",
+        tool: "ChatGPT (manutenção) -> Lovable",
+        status: "Em andamento",
+        priority: "Alta",
+        description: "Desenvolvimento da estrutura do aplicativo e atualização das regras em PDF. Migração para o Lovable via integração para construção do site e ajustes de funções.",
+        progress: 50,
+        updatedAt: new Date().toISOString(),
+        tasks: [
+          { id: "t1_1", title: "Após a migração para o Lovable, iniciar os ajustes conforme novas ideias forem surgindo", done: false }
+        ],
+        comments: []
+      },
+      {
+        id: "p2",
+        name: "APP SISTEMA DE GESTÃO DE MANUTENÇÃO DE EQUIPAMENTOS RANCHO DO CLA",
+        type: "Aplicativo",
+        tool: "Lovable via integração com ChatGPT",
+        status: "Em andamento",
+        priority: "Média",
+        description: "Sistema de gerenciamento de manutenções com controle de prazos e garantias de equipamentos do Rancho do CLA.",
+        progress: 40,
+        updatedAt: new Date().toISOString(),
+        tasks: [
+          { id: "t2_1", title: "Verificar os documentos necessários com as regras de garantia dos serviços", done: false },
+          { id: "t2_2", title: "Fazer com que o sistema informe automaticamente as regras de garantia ao finalizar o cadastro de uma nova manutenção", done: false }
+        ],
+        comments: []
+      },
+      {
+        id: "p3",
+        name: "APP SISTEMA DE GESTÃO DE MARMITAS RANCHO DO CLA",
+        type: "Aplicativo",
+        tool: "Lovable via integração com ChatGPT",
+        status: "Concluído",
+        priority: "Alta",
+        description: "Sistema pronto e em uso no Rancho do CLA para solicitação e controle de marmitas.",
+        progress: 100,
+        updatedAt: new Date().toISOString(),
+        tasks: [
+          { id: "t3_1", title: "Avaliar a viabilidade de disponibilizar o aplicativo para download ou permitir salvar atalho com ícone no Android/iOS", done: false },
+          { id: "t3_2", title: "Criar um ícone para o aplicativo", done: false }
+        ],
+        comments: []
+      },
+      {
+        id: "p4",
+        name: "APP SISTEMA DE DELIVERY",
+        type: "Aplicativo",
+        tool: "Lovable via integração com ChatGPT",
+        status: "Em andamento",
+        priority: "Urgente",
+        description: "Sistema de delivery completo para pedidos. Aguardando catálogo de imagens e cálculo de taxas.",
+        progress: 60,
+        updatedAt: new Date().toISOString(),
+        tasks: [
+          { id: "t4_1", title: "Implementar cálculo automático de distância via Google Maps para determinar a taxa de entrega", done: false },
+          { id: "t4_2", title: "Criar um ícone para o aplicativo", done: false },
+          { id: "t4_3", title: "Definir a instituição bancária receptora dos pagamentos", done: false },
+          { id: "t4_4", title: "Pesquisar a integração via API para conexão da instituição bancária com o aplicativo", done: false }
+        ],
+        comments: []
+      },
+      {
+        id: "p5",
+        name: "APP SISTEMA DE GESTÃO DE PERMUTAS RANCHO DO CLA",
+        type: "Aplicativo",
+        tool: "ChatGPT (manutenção) -> Lovable",
+        status: "Não iniciado",
+        priority: "Média",
+        description: "Definição de regras e códigos para sistema de permutas entre militares autorizados do Rancho do CLA.",
+        progress: 0,
+        updatedAt: new Date().toISOString(),
+        tasks: [
+          { id: "t5_1", title: "Desenvolver aplicação compatível com PC e dispositivos móveis Android e iOS para que usuários autorizados realizem permutas", done: false },
+          { id: "t5_2", title: "Criar um ícone para o aplicativo", done: false }
+        ],
+        comments: []
+      }
+    ];
+
+    let projects = [];
+    let currentView = 'grid';
+    let selectedProjectId = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderDashboard();
+      renderProjects();
+    });
+
+    function loadData() {
+      const stored = localStorage.getItem('gestao_apps_data');
+      if (stored) {
+        try { projects = JSON.parse(stored); } catch (e) { projects = [...DEFAULT_PROJECTS]; }
+      } else {
+        projects = [...DEFAULT_PROJECTS];
+        saveData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('gestao_apps_data', JSON.stringify(projects));
+      renderDashboard();
+      renderProjects();
+    }
+
+    function restoreInitialData() {
+      if (confirm('Deseja restaurar os 5 projetos padrão? Todas as alterações personalizadas serão redefinidas.')) {
+        projects = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+        saveData();
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById('view-projects').classList.add('hidden');
+      document.getElementById('view-data').classList.add('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+        b.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tab}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      const titleMap = {
+        dashboard: 'Dashboard Geral',
+        projects: 'Gestão de Projetos',
+        data: 'Backup & Dados'
+      };
+      document.getElementById('page-title').textContent = titleMap[tab] || 'Painel de Gestão';
+    }
+
+    function renderDashboard() {
+      document.getElementById('metric-total').textContent = projects.length;
+      document.getElementById('metric-progress').textContent = projects.filter(p => p.status === 'Em andamento').length;
+      document.getElementById('metric-completed').textContent = projects.filter(p => p.status === 'Concluído').length;
+      document.getElementById('metric-notstarted').textContent = projects.filter(p => p.status === 'Não iniciado').length;
+      document.getElementById('metric-paused').textContent = projects.filter(p => ['Pausado', 'Aguardando informação'].includes(p.status)).length;
+
+      let pendingTasksCount = 0;
+      projects.forEach(p => {
+        if (p.tasks) pendingTasksCount += p.tasks.filter(t => !t.done).length;
+      });
+      document.getElementById('metric-tasks').textContent = pendingTasksCount;
+
+      const recentList = document.getElementById('recent-projects-list');
+      recentList.innerHTML = '';
+      const sortedRecent = [...projects].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 4);
+
+      sortedRecent.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition cursor-pointer';
+        div.onclick = () => openDetailsModal(p.id);
+        div.innerHTML = `
+          <div class="min-w-0 pr-3">
+            <h4 class="font-bold text-white text-xs truncate uppercase">${p.name}</h4>
+            <span class="text-[10px] text-slate-400">${p.tool || 'Ferramenta N/A'}</span>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            ${getStatusBadge(p.status)}
+            <span class="font-bold text-xs text-blue-400">${p.progress || 0}%</span>
+          </div>
+        `;
+        recentList.appendChild(div);
+      });
+
+      const tasksPreview = document.getElementById('dashboard-tasks-preview');
+      tasksPreview.innerHTML = '';
+      let addedTasks = 0;
+
+      for (let p of projects) {
+        if (p.tasks) {
+          for (let t of p.tasks) {
+            if (!t.done && addedTasks < 5) {
+              const item = document.createElement('div');
+              item.className = 'p-2 bg-slate-950 rounded border border-slate-800 flex items-start gap-2';
+              item.innerHTML = `
+                <i class="fa-solid fa-circle-dot text-amber-400 text-[10px] mt-0.5"></i>
+                <div class="min-w-0">
+                  <p class="font-semibold text-slate-200 truncate">${t.title}</p>
+                  <span class="text-[9px] text-slate-400 block truncate">${p.name}</span>
+                </div>
+              `;
+              tasksPreview.appendChild(item);
+              addedTasks++;
+            }
+          }
+        }
+      }
+
+      if (addedTasks === 0) {
+        tasksPreview.innerHTML = `<p class="text-slate-400 italic">Nenhuma tarefa pendente!</p>`;
+      }
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projects-container');
+      container.innerHTML = '';
+
+      const search = document.getElementById('filter-search').value.toLowerCase();
+      const statusFilter = document.getElementById('filter-status').value;
+      const priorityFilter = document.getElementById('filter-priority').value;
+      const toolFilter = document.getElementById('filter-tool').value;
+      const sort = document.getElementById('filter-sort').value;
+
+      let filtered = projects.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search));
+        const matchesStatus = !statusFilter || p.status === statusFilter;
+        const matchesPriority = !priorityFilter || p.priority === priorityFilter;
+        const matchesTool = !toolFilter || (p.tool && p.tool.toLowerCase().includes(toolFilter.toLowerCase()));
+        return matchesSearch && matchesStatus && matchesPriority && matchesTool;
+      });
+
+      filtered.sort((a, b) => {
+        if (sort === 'name') return a.name.localeCompare(b.name);
+        if (sort === 'priority') return getPriorityWeight(b.priority) - getPriorityWeight(a.priority);
+        return new Date(b.updatedAt) - new Date(a.updatedAt);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 bg-slate-900 rounded-xl border border-slate-800">
+            <i class="fa-solid fa-folder-open text-3xl text-slate-500 mb-2"></i>
+            <p class="text-sm font-semibold text-slate-300">Nenhum projeto encontrado</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentView === 'grid') {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+
+        filtered.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'bg-slate-900 rounded-xl border border-slate-800 p-4 shadow-sm hover:border-emerald-400 hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] transition flex flex-col justify-between cursor-pointer space-y-3';
+          card.onclick = () => openDetailsModal(p.id);
+
+          const pendingTasks = p.tasks ? p.tasks.filter(t => !t.done).length : 0;
+
+          card.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${getPriorityClass(p.priority)}">${p.priority || 'Média'}</span>
+                ${getStatusBadge(p.status)}
+              </div>
+              <h3 class="font-bold text-white text-xs md:text-sm leading-tight uppercase line-clamp-2">${p.name}</h3>
+              <p class="text-[11px] text-slate-300 line-clamp-2">${p.description || 'Sem descrição.'}</p>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-slate-400"><i class="fa-solid fa-screwdriver-wrench text-blue-400"></i> ${p.tool || 'Não inf.'}</span>
+                <span class="font-bold text-blue-400">${p.progress || 0}%</span>
+              </div>
+              <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                <div class="bg-blue-500 h-full" style="width: ${p.progress || 0}%"></div>
+              </div>
+              <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                <span><i class="fa-solid fa-list-check"></i> ${pendingTasks} pendência(s)</span>
+                <span><i class="fa-regular fa-clock"></i> ${formatDate(p.updatedAt)}</span>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        container.appendChild(grid);
+
+      } else if (currentView === 'table') {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.className = 'bg-slate-900 rounded-xl border border-slate-800 overflow-x-auto shadow-sm';
+        
+        let tableHTML = `
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-slate-300 font-bold">
+                <th class="p-3">Nome do Projeto</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Prioridade</th>
+                <th class="p-3">Ferramenta</th>
+                <th class="p-3">Progresso</th>
+                <th class="p-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+        `;
+
+        filtered.forEach(p => {
+          tableHTML += `
+            <tr class="hover:bg-slate-800/60 transition cursor-pointer" onclick="openDetailsModal('${p.id}')">
+              <td class="p-3 font-bold text-white uppercase">${p.name}</td>
+              <td class="p-3">${getStatusBadge(p.status)}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${getPriorityClass(p.priority)}">${p.priority}</span></td>
+              <td class="p-3 text-slate-300">${p.tool || '-'}</td>
+              <td class="p-3 font-bold text-blue-400">${p.progress || 0}%</td>
+              <td class="p-3 text-right">
+                <button onclick="event.stopPropagation(); openDetailsModal('${p.id}')" class="text-blue-400 p-1 hover:underline font-semibold">Ver</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableHTML += `</tbody></table>`;
+        tableWrapper.innerHTML = tableHTML;
+        container.appendChild(tableWrapper);
+
+      } else if (currentView === 'kanban') {
+        const kanbanWrapper = document.createElement('div');
+        kanbanWrapper.className = 'grid grid-cols-1 md:grid-cols-3 gap-4 pb-4';
+
+        const columns = [
+          { title: 'Não Iniciado', status: 'Não iniciado', color: 'bg-slate-900 border-slate-800' },
+          { title: 'Em Andamento', status: 'Em andamento', color: 'bg-slate-900 border-blue-900/40' },
+          { title: 'Concluído', status: 'Concluído', color: 'bg-slate-900 border-emerald-900/40' }
+        ];
+
+        columns.forEach(col => {
+          const colProjs = filtered.filter(p => p.status === col.status);
+          const colDiv = document.createElement('div');
+          colDiv.className = `p-3 rounded-xl border ${col.color} min-h-[300px] flex flex-col space-y-3`;
+
+          colDiv.innerHTML = `
+            <div class="flex items-center justify-between font-bold text-xs text-white pb-2 border-b border-slate-800">
+              <span>${col.title}</span>
+              <span class="bg-slate-950 px-2 py-0.5 rounded-full text-[10px] shadow-sm text-slate-300 border border-slate-800">${colProjs.length}</span>
+            </div>
+          `;
+
+          const cardsContainer = document.createElement('div');
+          cardsContainer.className = 'space-y-2 flex-1';
+
+          colProjs.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'bg-slate-950 p-3 rounded-lg border border-slate-800 shadow-sm hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(52,211,153,0.4)] transition cursor-pointer space-y-2';
+            card.onclick = () => openDetailsModal(p.id);
+            card.innerHTML = `
+              <h4 class="font-bold text-white text-xs uppercase line-clamp-2">${p.name}</h4>
+              <div class="flex items-center justify-between text-[10px] text-slate-400">
+                <span>${p.tool || 'N/A'}</span>
+                <span class="font-bold text-blue-400">${p.progress}%</span>
+              </div>
+            `;
+            cardsContainer.appendChild(card);
+          });
+
+          colDiv.appendChild(cardsContainer);
+          kanbanWrapper.appendChild(colDiv);
+        });
+
+        container.appendChild(kanbanWrapper);
+      }
+    }
+
+    function setProjectView(view) {
+      currentView = view;
+      document.querySelectorAll('#view-btn-grid, #view-btn-table, #view-btn-kanban').forEach(b => {
+        b.classList.remove('bg-slate-800', 'shadow', 'text-white');
+        b.classList.add('text-slate-400');
+      });
+      const active = document.getElementById(`view-btn-${view}`);
+      if (active) {
+        active.classList.add('bg-slate-800', 'shadow', 'text-white');
+        active.classList.remove('text-slate-400');
+      }
+      renderProjects();
+    }
+
+    function openDetailsModal(id) {
+      selectedProjectId = id;
+      const p = projects.find(proj => proj.id === id);
+      if (!p) return;
+
+      document.getElementById('detail-name').textContent = p.name;
+      document.getElementById('detail-badge-status').outerHTML = getStatusBadge(p.status, 'detail-badge-status');
+      document.getElementById('detail-type').textContent = p.type || 'Aplicativo';
+      document.getElementById('detail-priority').textContent = p.priority || 'Média';
+      document.getElementById('detail-tool').textContent = p.tool || 'Não informada';
+      document.getElementById('detail-description').textContent = p.description || 'Nenhum objetivo fornecido.';
+      
+      updateDetailProgress(p);
+      renderDetailTasks(p);
+      renderDetailComments(p);
+
+      openModal('modal-details');
+    }
+
+    function updateDetailProgress(p) {
+      const prog = p.progress || 0;
+      document.getElementById('detail-progress-val').textContent = `${prog}%`;
+      document.getElementById('detail-progress-bar').style.width = `${prog}%`;
+    }
+
+    function renderDetailTasks(p) {
+      const list = document.getElementById('detail-tasks-list');
+      list.innerHTML = '';
+      const tasks = p.tasks || [];
+      document.getElementById('detail-tasks-count').textContent = `${tasks.length} tarefa(s)`;
+
+      tasks.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800';
+        item.innerHTML = `
+          <label class="flex items-center gap-2 cursor-pointer min-w-0 flex-1">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTaskDone('${p.id}', '${t.id}')" class="rounded bg-slate-900 border-slate-700 text-emerald-400 focus:ring-emerald-400">
+            <span class="text-xs ${t.done ? 'line-through text-slate-500' : 'text-slate-200'} font-medium truncate">${t.title}</span>
+          </label>
+          <button onclick="deleteTask('${p.id}', '${t.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash text-[10px]"></i></button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function renderDetailComments(p) {
+      const list = document.getElementById('detail-comments-list');
+      list.innerHTML = '';
+      const comments = p.comments || [];
+
+      comments.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'p-2 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-300';
+        item.innerHTML = `
+          <p>${c.text}</p>
+          <span class="text-[9px] text-slate-500 block mt-0.5">${formatDate(c.date)}</span>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function toggleTaskDone(projectId, taskId) {
+      const p = projects.find(proj => proj.id === projectId);
+      if (!p || !p.tasks) return;
+
+      const t = p.tasks.find(task => task.id === taskId);
+      if (t) {
+        t.done = !t.done;
+        const doneCount = p.tasks.filter(tk => tk.done).length;
+        p.progress = Math.round((doneCount / p.tasks.length) * 100);
+        if (p.progress === 100) p.status = 'Concluído';
+        else if (p.progress > 0 && p.status === 'Não iniciado') p.status = 'Em andamento';
+
+        p.updatedAt = new Date().toISOString();
+        saveData();
+        updateDetailProgress(p);
+        renderDetailTasks(p);
+      }
+    }
+
+    function addTaskFromDetail() {
+      const input = document.getElementById('new-task-title');
+      const val = input.value.trim();
+      if (!val || !selectedProjectId) return;
+
+      const p = projects.find(proj => proj.id === selectedProjectId);
+      if (p) {
+        if (!p.tasks) p.tasks = [];
+        p.tasks.push({ id: 't_' + Date.now(), title: val, done: false });
+
+        const doneCount = p.tasks.filter(tk => tk.done).length;
+        p.progress = Math.round((doneCount / p.tasks.length) * 100);
+
+        p.updatedAt = new Date().toISOString();
+        saveData();
+        input.value = '';
+        updateDetailProgress(p);
+        renderDetailTasks(p);
+      }
+    }
+
+    function deleteTask(projectId, taskId) {
+      const p = projects.find(proj => proj.id === projectId);
+      if (p && p.tasks) {
+        p.tasks = p.tasks.filter(t => t.id !== taskId);
+        if (p.tasks.length > 0) {
+          const doneCount = p.tasks.filter(tk => tk.done).length;
+          p.progress = Math.round((doneCount / p.tasks.length) * 100);
+        }
+        p.updatedAt = new Date().toISOString();
+        saveData();
+        updateDetailProgress(p);
+        renderDetailTasks(p);
+      }
+    }
+
+    function addCommentFromDetail() {
+      const input = document.getElementById('new-comment-input');
+      const val = input.value.trim();
+      if (!val || !selectedProjectId) return;
+
+      const p = projects.find(proj => proj.id === selectedProjectId);
+      if (p) {
+        if (!p.comments) p.comments = [];
+        p.comments.push({ text: val, date: new Date().toISOString() });
+        p.updatedAt = new Date().toISOString();
+        saveData();
+        input.value = '';
+        renderDetailComments(p);
+      }
+    }
+
+    function deleteCurrentProject() {
+      if (confirm('Deseja excluir este projeto?')) {
+        projects = projects.filter(p => p.id !== selectedProjectId);
+        saveData();
+        closeModal('modal-details');
+      }
+    }
+
+    function editCurrentProject() {
+      const p = projects.find(proj => proj.id === selectedProjectId);
+      if (!p) return;
+      closeModal('modal-details');
+
+      document.getElementById('project-id').value = p.id;
+      document.getElementById('project-name').value = p.name;
+      document.getElementById('project-type').value = p.type || 'Aplicativo';
+      document.getElementById('project-status').value = p.status || 'Em andamento';
+      document.getElementById('project-priority').value = p.priority || 'Média';
+      document.getElementById('project-tool').value = p.tool || '';
+      document.getElementById('project-description').value = p.description || '';
+
+      document.getElementById('modal-project-title').textContent = 'Editar Projeto';
+      openModal('modal-project');
+    }
+
+    function saveProject(e) {
+      e.preventDefault();
+      const id = document.getElementById('project-id').value;
+      const name = document.getElementById('project-name').value.trim().toUpperCase();
+      const type = document.getElementById('project-type').value;
+      const status = document.getElementById('project-status').value;
+      const priority = document.getElementById('project-priority').value;
+      const tool = document.getElementById('project-tool').value.trim();
+      const description = document.getElementById('project-description').value.trim();
+
+      if (!name) return;
+
+      if (id) {
+        const p = projects.find(proj => proj.id === id);
+        if (p) {
+          p.name = name;
+          p.type = type;
+          p.status = status;
+          p.priority = priority;
+          p.tool = tool;
+          p.description = description;
+          p.updatedAt = new Date().toISOString();
+        }
+      } else {
+        const newProj = {
+          id: 'p_' + Date.now(),
+          name,
+          type,
+          status,
+          priority,
+          tool,
+          description,
+          progress: status === 'Concluído' ? 100 : 0,
+          updatedAt: new Date().toISOString(),
+          tasks: [],
+          comments: []
+        };
+        projects.push(newProj);
+      }
+
+      saveData();
+      closeModal('modal-project');
+      document.getElementById('form-project').reset();
+      document.getElementById('project-id').value = '';
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `backup_gestao_apps_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            projects = imported;
+            saveData();
+            alert('Dados importados com sucesso!');
+          }
+        } catch (err) {
+          alert('Erro ao ler arquivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function getStatusBadge(status, idAttr = '') {
+      const idStr = idAttr ? `id="${idAttr}"` : '';
+      switch (status) {
+        case 'Concluído':
+          return `<span ${idStr} class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800"><i class="fa-solid fa-circle-check"></i> Concluído</span>`;
+        case 'Em andamento':
+          return `<span ${idStr} class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-950 text-blue-400 border border-blue-800"><i class="fa-solid fa-spinner"></i> Em andamento</span>`;
+        case 'Não iniciado':
+          return `<span ${idStr} class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-900 text-slate-400 border border-slate-800"><i class="fa-solid fa-hourglass-start"></i> Não iniciado</span>`;
+        default:
+          return `<span ${idStr} class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-950 text-amber-400 border border-amber-800"><i class="fa-solid fa-circle-pause"></i> ${status}</span>`;
+      }
+    }
+
+    function getPriorityClass(priority) {
+      switch (priority) {
+        case 'Urgente': return 'bg-rose-950 text-rose-400 border border-rose-800';
+        case 'Alta': return 'bg-amber-950 text-amber-400 border border-amber-800';
+        case 'Média': return 'bg-blue-950 text-blue-400 border border-blue-800';
+        default: return 'bg-slate-900 text-slate-400 border border-slate-800';
+      }
+    }
+
+    function getPriorityWeight(priority) {
+      switch (priority) {
+        case 'Urgente': return 4;
+        case 'Alta': return 3;
+        case 'Média': return 2;
+        default: return 1;
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    }
+  </script>
+</body>
+</html>
