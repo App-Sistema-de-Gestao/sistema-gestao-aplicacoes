@@ -6,8 +6,8 @@
   <title>Sistema de Gestão de Projetos e Aplicações</title>
 
   <!-- Configurações de PWA e Ícone para Celular -->
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/jpeg" href="icon.jpg">
+  <link rel="apple-touch-icon" href="icon.jpg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
@@ -1197,10 +1197,12 @@
     }
 
     function openModal(id) {
+      document.getElementById(id).classList.add('flex');
       document.getElementById(id).classList.remove('hidden');
     }
 
     function closeModal(id) {
+      document.getElementById(id).classList.remove('flex');
       document.getElementById(id).classList.add('hidden');
     }
 
